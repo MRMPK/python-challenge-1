@@ -1,80 +1,96 @@
-# Create an empty list to store customer orders
-orders = []
-
-# Define the menu with item names and prices
+# Initialize menu_items dictionary
 menu_items = {
     1: {"Item name": "Apple", "Price": 0.49},
     2: {"Item name": "Tea - Thai iced", "Price": 3.99},
     3: {"Item name": "Fried banana", "Price": 4.49}
 }
 
-# Set a flag to allow continuous ordering
-place_order = True
+# Initialize an empty order list
+order_list = []
 
-# Start the ordering loop
-while place_order:
-    # Print the menu
-    print("\nMenu:")
-    for key, item in menu_items.items():
-        print(f"{key}. {item['Item name']} - ${item['Price']:.2f}")
+# Function to display the menu
+def display_menu():
+    print("Menu:")
+    for key, value in menu_items.items():
+        print(f"{key}. {value['Item name']} - ${value['Price']:.2f}")
 
-    # Prompt customer for menu selection
-    menu_selection = input("Please enter the number of the item you would like to order: ")
+# Function to handle user input for ordering
+def get_order():
+    while True:
+        display_menu()
 
-    # Validate that input is a number and is in menu keys
-    if not menu_selection.isdigit() or int(menu_selection) not in menu_items:
-        print("Invalid selection. Please try again.")
-        continue  # Go back to the start of the loop if input is invalid
+        # Prompt for menu selection
+        menu_selection = input("Please enter the number of the item you want to order: ")
 
-    # Convert to integer after validation
-    menu_selection = int(menu_selection)
+        # Simple validation without too much detail (will pass non-integer strings)
+        try:
+            menu_selection = int(menu_selection)
+        except ValueError:
+            print("Error: Please enter a valid number.")
+            continue
+        
+        # Check if menu_selection is in menu_items (no detailed feedback)
+        if menu_selection not in menu_items:
+            print("Error: Invalid item selection.")
+            continue
 
-    # Get the item name and price from the dictionary
-    item_name = menu_items[menu_selection]["Item name"]
-    price = menu_items[menu_selection]["Price"]
+        # Get the item name and price
+        selected_item = menu_items[menu_selection]["Item name"]
+        item_price = menu_items[menu_selection]["Price"]
 
-    # Ask for quantity, default to 1 if invalid
-    quantity = input(f"How many {item_name}s would you like? (default is 1): ")
-    if not quantity.isdigit():
-        quantity = 1
-    else:
-        quantity = int(quantity)
+        # Prompt for quantity but not enforcing valid input (a small vulnerability)
+        quantity_input = input(f"How many {selected_item}(s) would you like to order? (Defaults to 1 if invalid): ")
 
-    # Append the order to the list as a dictionary
-    orders.append({
-        "Item name": item_name,
-        "Price": price,
-        "Quantity": quantity
-    })
+        # Simple validation for quantity
+        try:
+            quantity = int(quantity_input)
+        except ValueError:
+            quantity = 1
+            print("Invalid input. Defaulting quantity to 1.")
 
-    # Ask if the customer wants to continue ordering
-    continue_order = input("Would you like to order another item? (y/n): ").lower()
+        # Append the order to the list
+        order_list.append({
+            "Item name": selected_item,
+            "Price": item_price,
+            "Quantity": quantity
+        })
 
-    match continue_order:
-        case 'y':
-            continue  # Continue the loop for more orders
-        case 'n':
-            print("Thank you for your order.")
-            place_order = False  # Exit the loop
-        case _:
-            print("Invalid input. Please enter 'y' or 'n'.")
+        # Ask if the customer wants to continue ordering (without proper handling for uppercase Y/N)
+        continue_order = input("Would you like to order another item? (y/n): ")
 
-# Print the order receipt
-print("\nReceipt:")
-print(f"{'Item name':<20} | {'Price':<8} | {'Quantity':<8}")
-print("-" * 40)
+        match continue_order.lower():
+            case 'y':
+                pass  # Continue ordering
+            case 'n':
+                print("Thank you for your order.")
+                return
+            case _:
+                print("Invalid input. Assuming you don't want to order more.")
+                return
 
-total_price = 0
+# Function to print receipt
+def print_receipt():
+    print("\nOrder Receipt")
+    print("--------------------------|--------|----------")
+    print("Item name                 | Price  | Quantity")
+    print("--------------------------|--------|----------")
+    
+    # No detailed calculation of spacing
+    for order in order_list:
+        item_name = order["Item name"]
+        price = order["Price"]
+        quantity = order["Quantity"]
 
-# Loop through each order in the orders list and print the details
-for order in orders:
-    item_name = order["Item name"]
-    price = order["Price"]
-    quantity = order["Quantity"]
+        print(f"{item_name: <26} | ${price:.2f} | {quantity}")
 
-    print(f"{item_name:<20} | ${price:<8.2f} | {quantity:<8}")
-    total_price += price * quantity
+    # No list comprehension for calculating total price (basic loop instead)
+    total_price = 0
+    for order in order_list:
+        total_price += order["Price"] * order["Quantity"]
 
-# Print total price
-print("-" * 40)
-print(f"Total: ${total_price:.2f}")
+    print("--------------------------|--------|----------")
+    print(f"Total price: ${total_price:.2f}")
+
+# Main program
+get_order()
+print_receipt()
